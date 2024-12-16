@@ -1,53 +1,39 @@
-from functools import lru_cache
+from functools import cache
 
 def load_input():
 	with open("input.txt") as f:
 		return f.read().split(' ')
 
-@lru_cache
-def blink(stones):
-	i = 0
-	if len(stones) > 5:
-		res = []
-		pad = int(len(stones) / 4)
-		sep = 0
-		while (sep <= len(stones)):
-			part = stones[sep:sep + pad]
-			sep += pad
-			part = blink(part)
-			res = res + part
-		return res
-
-	stones = list(stones)
-	while i < len(stones):
-		if stones[i] == "0":
-			stones[i] = "1"
-		elif len(stones[i]) % 2 == 0:
-			mid = int(len(stones[i]) / 2)
-			new_stone = stones[i][mid:].lstrip('0')
-			if len(new_stone) == 0:
-				new_stone = '0'
-			stones[i] = stones[i][:mid]
-			i += 1
-			stones.insert(i, new_stone)
-		else:
-			stones[i] = str(int(stones[i]) * 2024)
-		i += 1
-
-	return stones
+@cache
+def blink(stone, blink_nb):
+	if blink_nb == 0:
+		return 1
+	
+	if stone == "0":
+		return blink("1", blink_nb - 1)
+	elif len(stone) % 2 == 0:
+		mid =  int(len(stone) / 2)
+		new_stone = stone[mid:].lstrip('0')
+		if len(new_stone) == 0:
+			new_stone = '0'
+		stone = stone[:mid]
+		return blink(stone, blink_nb - 1) + blink(new_stone, blink_nb - 1)
+	else:
+		return blink(str(int(stone) * 2024), blink_nb - 1)
 
 def part1():
 	stones = load_input()
-	for _ in range(25):
-		stones = blink(tuple(stones))
-	print(len(stones))
+	res = 0
+	for stone in stones:
+		res += blink(stone, 25)
+	print(res)
 
 def part2():
 	stones = load_input()
-	for i in range(75):
-		print("turn", i, len(stones))
-		stones = blink(tuple(stones))
-	print(len(stones))
+	res = 0
+	for stone in stones:
+		res += blink(stone, 75)
+	print(res)
 
 part1()
 part2()
